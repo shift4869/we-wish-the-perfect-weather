@@ -14,8 +14,8 @@ logger.setLevel(INFO)
 
 
 class Manager:
-    MSG_TEMPLATE_PASH = "./log/msg.html"
-    CONFIG_PASH = "./config/config.json"
+    MSG_TEMPLATE_PATH = "./log/msg.html"
+    CONFIG_PATH = "./config/config.json"
     PW_BASE = {
         "maximum_temperature": 28,
         "minimum_temperature": 18,
@@ -26,21 +26,30 @@ class Manager:
         "maximum_wind_speed": 3,
     }
 
-    def __init__(self):
-        self.config = orjson.loads(Path(Manager.CONFIG_PASH).read_bytes())
-        self.fetcher = WeatherFetcher(self.config)
+    def __init__(self) -> None:
+        self.config: dict = orjson.loads(Path(Manager.CONFIG_PATH).read_bytes())
+        self.fetcher: WeatherFetcher = WeatherFetcher(self.config)
 
-        db_fullpath = Path(self.config["db"]["save_path"]) / self.config["db"]["save_file_name"]
-        self.weather_db = WeatherDBController(db_fullpath)
+        db_fullpath: Path = Path(self.config["db"]["save_path"]) / self.config["db"]["save_file_name"]
+        self.weather_db: WeatherDBController = WeatherDBController(db_fullpath)
 
-        msg_template_str = Path(Manager.MSG_TEMPLATE_PASH).read_text()
-        self.msg_template = Template(msg_template_str)
+        msg_template_str: str = Path(Manager.MSG_TEMPLATE_PATH).read_text()
+        self.msg_template: Template = Template(msg_template_str)
 
-        self.registered_at = get_now()
+        self.registered_at: str = get_now()
 
     def check_perfection(self, info: dict) -> list[bool]:
-        """
-        ・完璧な気候の定義
+        """気象情報を元に、"完璧な気候" かどうかを判定する
+
+        Args:
+            info (dict): 気象情報辞書
+
+        Returns:
+            list[bool]: 以下の定義のそれぞれの基準について、満たすかどうかの真偽値配列
+
+        Notes:
+            "完璧な気候" の定義
+            ある一日を通して以下の各項目を常に満たしているとき「"完璧な気候" の一日だった」と呼ぶ
             ・気温18度以上28度以下、かつ湿度40%以上70%以下
                 事務所衛生基準規則第5条より
                 https://jsite.mhlw.go.jp/yamanashi-roudoukyoku/hourei_seido_tetsuzuki/anzen_eisei/hourei_seido/jimushosoku_kaisei_00001.html
@@ -52,14 +61,20 @@ class Manager:
             ・風速3m/s以下（木の葉や細かい小枝が揺れる程度で、日常生活にはほとんど影響がない程度）
         """
         result = []
-        record_type = info["record_type"]
-        maximum_temperature = info["maximum_temperature"]
-        minimum_temperature = info["minimum_temperature"]
-        maximum_humidity = info["maximum_humidity"]
-        minimum_humidity = info["minimum_humidity"]
-        maximum_precipitation_probability = info["maximum_precipitation_probability"]
-        maximum_precipitation = info["maximum_precipitation"]
-        maximum_wind_speed = info["maximum_wind_speed"]
+        match info:
+            case {
+                "record_type": record_type,
+                "maximum_temperature": maximum_temperature,
+                "minimum_temperature": minimum_temperature,
+                "maximum_humidity": maximum_humidity,
+                "minimum_humidity": minimum_humidity,
+                "maximum_precipitation_probability": maximum_precipitation_probability,
+                "maximum_precipitation": maximum_precipitation,
+                "maximum_wind_speed": maximum_wind_speed,
+            }:
+                pass
+            case _:
+                raise ValueError("info structure is invalid.")
 
         base = Manager.PW_BASE
         result.append(maximum_temperature <= base["maximum_temperature"])
