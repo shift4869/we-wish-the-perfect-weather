@@ -1,0 +1,73 @@
+[project]
+name = "we-wish-the-perfect-weather"
+version = "0.1.0"
+license = "MIT"
+authors = [
+    { name = "shift", email = "fantasy_world4423-git@yahoo.co.jp" }
+]
+dependencies = [
+    "coverage>=7.13.0",
+    "cryptography>=46.0.3",
+    "emoji>=2.15.0",
+    "freezegun>=1.5.5",
+    "httpx>=0.28.1",
+    "isort>=7.0.0",
+    "jinja2>=3.1.6",
+    "mock>=5.2.0",
+    "numpy>=2.3.5",
+    "openmeteo-requests>=1.7.4",
+    "orjson>=3.11.5",
+    "plyer>=2.1.0",
+    "pycodestyle>=2.14.0",
+    "requests-cache>=1.2.1",
+    "retry-requests>=2.0.0",
+    "ruff>=0.14.9",
+    "slack-sdk>=3.39.0",
+    "sqlalchemy>=2.0.45",
+    "xmltodict>=1.0.2",
+]
+readme = "README.md"
+requires-python = ">= 3.11"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.isort]
+line_length = 119
+multi_line_output = 9
+
+[tool.ruff]
+exclude = [
+    "__pycache__",
+    ".coveragerc",
+    ".git",
+    ".venv",
+    "venv",
+]
+line-length = 119
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+select = ["E", "F"]
+ignore = ["F401", "F541", "F841"]
+preview = true
+
+[tool.ruff.format]
+preview = true
+quote-style = "double"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.rye.scripts]
+unittest = "python -m unittest"
+coverage_html = {chain = ["coverage run --source . -m unittest discover", "coverage html"]}
+copy_to_run = "./copy_to_run.bat"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/we_wish_the_perfect_weather"]

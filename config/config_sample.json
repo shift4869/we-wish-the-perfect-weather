@@ -1,0 +1,18 @@
+{
+    "open_meteo": {
+        "latitude": "35.6895",
+        "longitude": "139.6917"
+    },
+    "db": {
+        "save_path": "we-wish-the-perfect-weather",
+        "save_file_name": "PW_DB.db"
+    },
+    "notification": {
+        "perfect": true,
+        "imperfect": true
+    },
+    "discord_webhook_url": {
+        "is_post_discord_notify": true,
+        "webhook_url": ""
+    }
+}

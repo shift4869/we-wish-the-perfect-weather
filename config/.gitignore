@@ -1,0 +1,4 @@
+# user
+*.ini
+*.json
+!config_sample.json
