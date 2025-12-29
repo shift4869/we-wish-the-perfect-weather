@@ -89,7 +89,33 @@ class WeatherDBController(DBControllerBase):
         session.close()
         return res_dict
 
-    def is_perfect(self, record_type: str, target_date: str) -> bool:
+    def select_by_target_date(self, target_date: str, record_type: str) -> list[dict]:
+        """特定の日付の結果or予測レコードをSELECTする
+
+        Note:
+            f"select * from Weather where target_date == {registered_date} and record_type = {record_type}"
+
+        Args:
+            target_date (str): 取得対象の日付 "%Y-%m-%d"形式
+            record_type (str): レコードタイプ ["actual", "forecast"]
+
+        Returns:
+            list[dict]: SELECTしたレコードの辞書リスト
+        """
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+
+        res = (
+            session.query(Weather)
+            .filter(and_(Weather.target_date == target_date, Weather.record_type == record_type))
+            .all()
+        )
+        res_dict = [r.to_dict() for r in res]  # 辞書リストに変換
+
+        session.close()
+        return res_dict
+
+    def is_perfect(self, target_date: str, record_type: str) -> bool:
         """特定の日付の結果or予測が "完璧な気候" かを取得する
 
         Note:

@@ -165,9 +165,13 @@ class Manager:
                 self.post_discord_notify(msg)
         return Result.success
 
+    def is_first_run_of_day(self, target_date1: str, target_date2: str) -> bool:
+        t1 = self.weather_db.select_by_target_date(target_date1, "actual")
+        t2 = self.weather_db.select_by_target_date(target_date2, "forecast")
+        return not (t1 and t2)
+
     def run(self) -> Result:
         logger.info("Manager run -> start.")
-        fetched_data = self.fetcher.fetch()
 
         target_date_at_list = [
             get_yesterday(),
@@ -181,15 +185,24 @@ class Manager:
         if is_morning():
             target_date1 = target_date_list[0]
             target_date2 = target_date_list[1]
-            n1, m1 = 0, 24
-            n2, m2 = 24, 48
+            n1, m1 = 0, 24  # 昨日の値が含まれるスライス範囲
+            n2, m2 = 24, 48  # 今日の値が含まれるスライス範囲
             logger.info(f"Now is morning, checking [{target_date1}, {target_date2}].")
         else:
             target_date1 = target_date_list[1]
             target_date2 = target_date_list[2]
-            n1, m1 = 24, 48
-            n2, m2 = 48, 72
+            n1, m1 = 24, 48  # 今日の値が含まれるスライス範囲
+            n2, m2 = 48, 72  # 明日の値が含まれるスライス範囲
             logger.info(f"Now is afternoon, checking [{target_date1}, {target_date2}].")
+
+        # 実行日の午前or午後それぞれで初回実行で無ければ
+        if not self.is_first_run_of_day(target_date1, target_date2):
+            logger.info(f"[{target_date1}, {target_date2}] target_date is already done.")
+            logger.info("Manager run -> done.")
+            return Result.success
+
+        # 気象情報取得
+        fetched_data = self.fetcher.fetch()
 
         logger.info("Manager register -> start.")
         # 実測値格納
