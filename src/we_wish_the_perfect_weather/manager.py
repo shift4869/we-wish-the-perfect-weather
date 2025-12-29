@@ -77,8 +77,12 @@ class Manager:
                 raise ValueError("info structure is invalid.")
 
         base = Manager.PW_BASE
-        result.append(maximum_temperature <= base["maximum_temperature"])
-        result.append(base["minimum_temperature"] <= minimum_temperature)
+        result.append(
+            base["minimum_temperature"] <= maximum_temperature and maximum_temperature <= base["maximum_temperature"]
+        )
+        result.append(
+            base["minimum_temperature"] <= minimum_temperature and minimum_temperature <= base["maximum_temperature"]
+        )
         result.append(maximum_humidity <= base["maximum_humidity"])
         result.append(base["minimum_humidity"] <= minimum_humidity)
         result.append(maximum_precipitation_probability <= base["maximum_precipitation_probability"])
