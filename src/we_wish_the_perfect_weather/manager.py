@@ -151,8 +151,9 @@ class Manager:
         if record["is_perfect"]:
             logger.info(f"{target_date} {record_type} is perfect !!!")
             if self.config["notification"]["perfect"] and is_post_discord:
+                line = "/" * 55 + "\n"
                 msg = self.msg_template.render(record=record, base=Manager.PW_BASE, check=check)
-                self.post_discord_notify(msg)
+                self.post_discord_notify(f"{line}{msg}{line}")
         else:
             logger.info(f"{target_date} {record_type} is imperfect ...")
             if self.config["notification"]["imperfect"] and is_post_discord:
