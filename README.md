@@ -10,6 +10,7 @@
     - 晴れか曇りかは問わない
   - 風速3m/s以下（木の葉や細かい小枝が揺れる程度で、日常生活にはほとんど影響がない程度）
   - 花粉飛散数が10個/cm^2未満（花粉数「少ない」の基準）
+    - 元データとしてはウェザーニュースの「ポールンロボ」で観測されたデータを使用（元データの項目を参照）
     - 花粉情報等標準化委員会が制定した基準より
     - https://square.umin.ac.jp/psj3/jp/PSJ_polleninfo_standardization.pdf
 
@@ -19,4 +20,4 @@
 
 ## License/Author
 [MIT License](https://github.com/shift4869/we-wish-the-perfect-weather/blob/master/LICENSE)  
-Copyright (c) 2025 -  [shift](https://x.com/_shift4869)
+Copyright (c) 2025 ~  [shift](https://x.com/_shift4869)
