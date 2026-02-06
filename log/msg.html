@@ -1,0 +1,5 @@
+{{record["target_date"]}} {{record["record_type"]}} is {% if record["is_perfect"] %}perfect !!!{% else %}imperfect ...{% endif %} 
+  Column: M_temp, m_temp, M_humid, m_humid, M_precip_prob, M_precip, M_wind, M_pollen
+Standard: {{"{:.1f}, {:.1f}, {}, {}, {}, {:.1f}, {:.1f}, {}".format(base["maximum_temperature"], base["minimum_temperature"], base["maximum_humidity"], base["minimum_humidity"], base["maximum_precipitation_probability"], base["maximum_precipitation"], base["maximum_wind_speed"], base["maximum_pollen_count"])}}
+  Target: {{"{:.1f}, {:.1f}, {}, {}, {}, {:.1f}, {:.1f}, {}".format(record["maximum_temperature"], record["minimum_temperature"], record["maximum_humidity"], record["minimum_humidity"], record["maximum_precipitation_probability"], record["maximum_precipitation"], record["maximum_wind_speed"], record["maximum_pollen_count"])}}
+   Check: {{"{}, {}, {}, {}, {}, {}, {}, {}".format(check[0], check[1], check[2], check[3], check[4], check[5], check[6], check[7])}}

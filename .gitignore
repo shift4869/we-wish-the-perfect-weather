@@ -112,6 +112,7 @@ ENV/
 !logging.ini
 !encrypt*.ini
 *.html
+!msg.html
 *.db
 log*.txt*
 *.stackdump
