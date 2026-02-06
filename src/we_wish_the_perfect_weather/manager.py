@@ -5,9 +5,11 @@ import httpx
 import orjson
 from jinja2 import Template
 
+from we_wish_the_perfect_weather.fetcher_base import FetcherBase
+from we_wish_the_perfect_weather.open_meteo_fetcher import OpenMeteoFetcher
+from we_wish_the_perfect_weather.pollen_count_fetcher import PollenCountFetcher
 from we_wish_the_perfect_weather.util import Result, datetime_to_date, get_now, get_tomorrow, get_yesterday, is_morning
 from we_wish_the_perfect_weather.weather_db_controller import WeatherDBController
-from we_wish_the_perfect_weather.weather_fetcher import WeatherFetcher
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
@@ -24,11 +26,12 @@ class Manager:
         "maximum_precipitation_probability": 10,
         "maximum_precipitation": 0,
         "maximum_wind_speed": 3,
+        "maximum_pollen_count": 10,
     }
 
     def __init__(self) -> None:
         self.config: dict = orjson.loads(Path(Manager.CONFIG_PATH).read_bytes())
-        self.fetcher: WeatherFetcher = WeatherFetcher(self.config)
+        self.fetcher_list: list[FetcherBase] = [OpenMeteoFetcher(self.config), PollenCountFetcher(self.config)]
 
         db_fullpath: Path = Path(self.config["db"]["save_path"]) / self.config["db"]["save_file_name"]
         self.weather_db: WeatherDBController = WeatherDBController(db_fullpath)
@@ -71,6 +74,7 @@ class Manager:
                 "maximum_precipitation_probability": maximum_precipitation_probability,
                 "maximum_precipitation": maximum_precipitation,
                 "maximum_wind_speed": maximum_wind_speed,
+                "maximum_pollen_count": maximum_pollen_count,
             }:
                 pass
             case _:
@@ -88,6 +92,7 @@ class Manager:
         result.append(maximum_precipitation_probability <= base["maximum_precipitation_probability"])
         result.append(maximum_precipitation <= base["maximum_precipitation"])
         result.append(maximum_wind_speed <= base["maximum_wind_speed"])
+        result.append(maximum_pollen_count < base["maximum_pollen_count"])
         return result
 
     def post_discord_notify(self, message: str, is_embed: bool = False) -> Result:
@@ -125,26 +130,11 @@ class Manager:
         response.raise_for_status()
         return Result.success
 
-    def register(self, target_date: str, record_type: str, fetched_data: dict, n: int, m: int) -> Result:
-        maximum_temperature = max(fetched_data["temperature_2m"][n:m])
-        minimum_temperature = min(fetched_data["temperature_2m"][n:m])
-        maximum_humidity = int(max(fetched_data["relative_humidity_2m"][n:m]))
-        minimum_humidity = int(min(fetched_data["relative_humidity_2m"][n:m]))
-        maximum_precipitation_probability = int(max(fetched_data["precipitation_probability"][n:m]))
-        maximum_precipitation = max(fetched_data["precipitation"][n:m])
-        maximum_wind_speed = max(fetched_data["wind_speed_10m"][n:m]) / 3.6  # [km/h]から[m/s]に変換
+    def register(self, target_date: str, record_type: str) -> Result:
+        record = {}
+        for fetcher in self.fetcher_list:
+            record = record | fetcher.interpret(target_date, record_type)
 
-        record = {
-            "target_date": target_date,
-            "record_type": record_type,
-            "maximum_temperature": maximum_temperature,
-            "minimum_temperature": minimum_temperature,
-            "maximum_humidity": maximum_humidity,
-            "minimum_humidity": minimum_humidity,
-            "maximum_precipitation_probability": maximum_precipitation_probability,
-            "maximum_precipitation": maximum_precipitation,
-            "maximum_wind_speed": maximum_wind_speed,
-        }
         check = self.check_perfection(record)
         record["is_perfect"] = all(check)
         record["registered_at"] = self.registered_at
@@ -180,19 +170,13 @@ class Manager:
         ]
         target_date_list = [datetime_to_date(t) for t in target_date_at_list]
         target_date1, target_date2 = "", ""
-        n1, m1 = -1, -1
-        n2, m2 = -1, -1
         if is_morning():
             target_date1 = target_date_list[0]
             target_date2 = target_date_list[1]
-            n1, m1 = 0, 24  # 昨日の値が含まれるスライス範囲
-            n2, m2 = 24, 48  # 今日の値が含まれるスライス範囲
             logger.info(f"Now is morning, checking [{target_date1}, {target_date2}].")
         else:
             target_date1 = target_date_list[1]
             target_date2 = target_date_list[2]
-            n1, m1 = 24, 48  # 今日の値が含まれるスライス範囲
-            n2, m2 = 48, 72  # 明日の値が含まれるスライス範囲
             logger.info(f"Now is afternoon, checking [{target_date1}, {target_date2}].")
 
         # 実行日の午前or午後それぞれで初回実行で無ければ
@@ -202,13 +186,14 @@ class Manager:
             return Result.success
 
         # 気象情報取得
-        fetched_data = self.fetcher.fetch()
+        for fetcher in self.fetcher_list:
+            fetcher.fetch()
 
         logger.info("Manager register -> start.")
         # 実測値格納
-        self.register(target_date1, "actual", fetched_data, n1, m1)
+        self.register(target_date1, "actual")
         # 予報値格納
-        self.register(target_date2, "forecast", fetched_data, n2, m2)
+        self.register(target_date2, "forecast")
         logger.info("Manager register -> done.")
 
         logger.info("Manager run -> done.")

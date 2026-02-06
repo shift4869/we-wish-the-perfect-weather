@@ -32,6 +32,7 @@ class WeatherDBController(DBControllerBase):
                     "maximum_precipitation_probability": (int),
                     "maximum_precipitation": (float),
                     "maximum_wind_speed": (float),
+                    "pollen_count": (int),
                     "registered_at": (str: "%Y-%m-%d %H:%M:%S"),
                 }
         """
@@ -63,6 +64,7 @@ class WeatherDBController(DBControllerBase):
                 ex.maximum_precipitation_probability = r.maximum_precipitation_probability
                 ex.maximum_precipitation = r.maximum_precipitation
                 ex.maximum_wind_speed = r.maximum_wind_speed
+                ex.maximum_pollen_count = r.maximum_pollen_count
                 ex.registered_at = r.registered_at
 
         session.commit()

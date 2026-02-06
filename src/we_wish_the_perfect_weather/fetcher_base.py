@@ -7,23 +7,18 @@ from retry_requests import retry
 
 
 class FetcherBase(metaclass=ABCMeta):
-    api_endpoint_base = "https://api.open-meteo.com/v1/forecast"
+    API_OPEN_METEO = ""
 
     def __init__(self, config: dict):
         self.config = config
-        self.latitude = config["open_meteo"]["latitude"]
-        self.longitude = config["open_meteo"]["longitude"]
-        cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
-        retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-        self.open_meteo = openmeteo_requests.Client(session=retry_session)
 
-    @property
+    @abstractmethod
     def api_endpoint_url(self) -> str:
-        url = FetcherBase.api_endpoint_base
-        return url
+        raise NotImplementedError()
 
-    @property
+    @abstractmethod
     def api_params(self) -> dict:
+        raise NotImplementedError()
         params = {
             "latitude": float(self.latitude),
             "longitude": float(self.longitude),
@@ -44,12 +39,16 @@ class FetcherBase(metaclass=ABCMeta):
     def fetch(self) -> dict:
         raise NotImplementedError()
 
+    @abstractmethod
+    def interpret(self, target_date: str, record_type: str) -> dict:
+        raise NotImplementedError()
+
 
 if __name__ == "__main__":
     import orjson
 
-    from we_wish_the_perfect_weather.weather_fetcher import WeatherFetcher
+    from we_wish_the_perfect_weather.open_meteo_fetcher import OpenMeteoFetcher
 
     config = orjson.loads(Path("./config/config.json").read_bytes())
-    fetcher = WeatherFetcher(config)
+    fetcher = OpenMeteoFetcher(config)
     print(fetcher.fetch())

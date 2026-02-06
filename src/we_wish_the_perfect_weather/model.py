@@ -21,6 +21,7 @@ class Weather(Base):
     [maximum_precipitation_probability] Integer NOT NULL,
     [maximum_precipitation] Float NOT NULL,
     [maximum_wind_speed] Float NOT NULL,
+    [maximum_pollen_count] Integer NOT NULL,
     [registered_at] TEXT NOT NULL,
     PRIMARY KEY([id])
     """
@@ -38,6 +39,7 @@ class Weather(Base):
     maximum_precipitation_probability = Column(INTEGER(), nullable=False)
     maximum_precipitation = Column(Float(precision=1), nullable=False)
     maximum_wind_speed = Column(Float(precision=1), nullable=False)
+    maximum_pollen_count = Column(INTEGER(), nullable=False)
     registered_at = Column(String(32))
 
     def __init__(
@@ -52,6 +54,7 @@ class Weather(Base):
         maximum_precipitation_probability: int,
         maximum_precipitation: float,
         maximum_wind_speed: float,
+        maximum_pollen_count: int,
         registered_at: str,
     ) -> None:
         if not isinstance(target_date, str):
@@ -74,6 +77,8 @@ class Weather(Base):
             raise TypeError("maximum_precipitation must be float.")
         if not isinstance(maximum_wind_speed, float):
             raise TypeError("maximum_wind_speed must be float.")
+        if not isinstance(maximum_pollen_count, int):
+            raise TypeError("maximum_pollen_count must be int.")
         if not isinstance(registered_at, str):
             raise TypeError("registered_at must be str.")
 
@@ -87,6 +92,7 @@ class Weather(Base):
         self.maximum_precipitation_probability = maximum_precipitation_probability
         self.maximum_precipitation = maximum_precipitation
         self.maximum_wind_speed = maximum_wind_speed
+        self.maximum_pollen_count = maximum_pollen_count
         self.registered_at = registered_at
 
     def __repr__(self) -> str:
@@ -113,6 +119,7 @@ class Weather(Base):
             "maximum_precipitation_probability": self.maximum_precipitation_probability,
             "maximum_precipitation": self.maximum_precipitation,
             "maximum_wind_speed": self.maximum_wind_speed,
+            "maximum_pollen_count": self.maximum_pollen_count,
             "registered_at": self.registered_at,
         }
 
@@ -130,6 +137,7 @@ class Weather(Base):
                 "maximum_precipitation_probability": maximum_precipitation_probability,
                 "maximum_precipitation": maximum_precipitation,
                 "maximum_wind_speed": maximum_wind_speed,
+                "maximum_pollen_count": maximum_pollen_count,
                 "registered_at": registered_at,
             }:
                 return cls(
@@ -143,6 +151,7 @@ class Weather(Base):
                     maximum_precipitation_probability,
                     maximum_precipitation,
                     maximum_wind_speed,
+                    maximum_pollen_count,
                     registered_at,
                 )
             case _:

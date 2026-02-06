@@ -92,6 +92,19 @@ def datetime_to_date(datetime_at: str) -> str:
     return str(datetime_at[:10])
 
 
+def datetime_to_yyyymmdd(datetime_at: str) -> str:
+    """日時文字列から年月日のみ取り出す
+
+    Args:
+        datetime_at (str): 対象の日時文字列
+
+    Returns:
+        str: 対象の日時文字列に含まれる年月日(yyyymmdd)
+    """
+    date_str = datetime_to_date(datetime_at)
+    return date_str.replace("-", "")
+
+
 def is_morning() -> bool:
     """午前中かどうかを返す
 

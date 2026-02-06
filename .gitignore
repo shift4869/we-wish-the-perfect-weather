@@ -131,3 +131,4 @@ log*.txt*
 /sample/
 /data/
 *.cache*
+Weather.csv
