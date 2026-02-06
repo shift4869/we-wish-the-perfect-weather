@@ -72,30 +72,23 @@ class PollenCountFetcher(FetcherBase):
                 return (-1, -1)
 
     def interpret(self, target_date: str, record_type: str) -> dict:
+        error_value_default = {
+            "target_date": target_date,
+            "record_type": record_type,
+            "maximum_pollen_count": -9999,
+        }
         if self.fetched_csv == "":
             # fetchが失敗している場合
-            return {
-                "target_date": target_date,
-                "record_type": record_type,
-                "maximum_pollen_count": -9999,
-            }
+            return error_value_default
 
         n, m = self.get_slice(target_date)
         if n == -1 or m == -1:
             # target_date が想定外の範囲
-            return {
-                "target_date": target_date,
-                "record_type": record_type,
-                "maximum_pollen_count": -9999,
-            }
+            return error_value_default
 
         if n == 48 and m == 72:
             # 明日の値を参照された場合、確定で値が存在しないので決め打ち
-            return {
-                "target_date": target_date,
-                "record_type": record_type,
-                "maximum_pollen_count": -9999,
-            }
+            return error_value_default
 
         def is_numeric(s: str) -> bool:
             try:
