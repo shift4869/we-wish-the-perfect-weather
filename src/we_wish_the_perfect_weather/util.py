@@ -111,7 +111,9 @@ def is_morning() -> bool:
     Returns:
         bool: 午前中ならばTrue, 午後ならばFalse
     """
-    return datetime.now().hour < 12
+    # THINK::暫定措置として常に午前中とする
+    # return datetime.now().hour < 12
+    return True
 
 
 def to_builtin(obj: Any) -> Any:

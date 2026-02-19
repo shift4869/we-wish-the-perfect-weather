@@ -29,7 +29,8 @@ class Manager:
         "maximum_pollen_count": 10,
     }
 
-    def __init__(self) -> None:
+    def __init__(self, is_force: bool = False) -> None:
+        self.is_force: bool = is_force
         self.config: dict = orjson.loads(Path(Manager.CONFIG_PATH).read_bytes())
         self.fetcher_list: list[FetcherBase] = [OpenMeteoFetcher(self.config), PollenCountFetcher(self.config)]
 
@@ -179,8 +180,8 @@ class Manager:
             target_date2 = target_date_list[2]
             logger.info(f"Now is afternoon, checking [{target_date1}, {target_date2}].")
 
-        # 実行日の午前or午後それぞれで初回実行で無ければ
-        if not self.is_first_run_of_day(target_date1, target_date2):
+        # 強制実行でない、かつ、実行日の午前or午後それぞれで初回実行で無ければ
+        if (not self.is_force) and (not self.is_first_run_of_day(target_date1, target_date2)):
             logger.info(f"[{target_date1}, {target_date2}] target_date is already done.")
             logger.info("Manager run -> done.")
             return Result.success

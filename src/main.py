@@ -1,3 +1,4 @@
+import argparse
 import logging.config
 from logging import INFO, getLogger
 from pathlib import Path
@@ -19,11 +20,21 @@ if __name__ == "__main__":
     horizontal_line = "-" * 100
     logger.info(horizontal_line)
     logger.info("We wish the perfect weather run -> start.")
+
+    parser = argparse.ArgumentParser(description="we_wish_the_perfect_weather")
+    parser.add_argument(
+        "--force", action="store_true", help="1日1回の取得制限を無視して強制的に気象情報を取得する（手動実行用）"
+    )
+    args = parser.parse_args()
+    is_force = False
+    if args.force:
+        is_force = True
+
     p = Path(PREVENT_MULTIPLE_RUN_PATH)
     try:
         if not p.exists():
             p.touch()
-            manager = Manager()
+            manager = Manager(is_force)
             manager.run()
         else:
             logger.info("Multiple run -> abort.")
