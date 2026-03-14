@@ -135,8 +135,12 @@ class PollenCountFetcher(FetcherBase):
         # 花粉飛散量の実測値のmaxをとる
         max_rawdata_pollen_count = max(pollen_count_list[n:m])
 
-        # 花粉飛散量のmaxの予測値を取得する
-        max_forcast_pollen_count = self.get_forcast_max_pollon_count(pollen_count_list)
+        # target_dateが今日の予報ならば花粉飛散量のmaxの予測値を取得する
+        max_forcast_pollen_count = (
+            self.get_forcast_max_pollon_count(pollen_count_list)
+            if target_date == datetime_to_date(get_now())
+            else max_rawdata_pollen_count
+        )
 
         # 花粉飛散量のmaxをとる
         pollen_count = max([max_forcast_pollen_count, max_rawdata_pollen_count])
