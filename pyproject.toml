@@ -6,26 +6,26 @@ authors = [
     { name = "shift", email = "fantasy_world4423-git@yahoo.co.jp" }
 ]
 dependencies = [
-    "coverage>=7.13.0",
-    "cryptography>=46.0.3",
+    "coverage>=7.13.4",
+    "cryptography>=46.0.5",
     "emoji>=2.15.0",
     "freezegun>=1.5.5",
-    "httpx-retries>=0.4.5",
+    "httpx-retries>=0.4.6",
     "httpx>=0.28.1",
-    "isort>=7.0.0",
+    "isort>=8.0.1",
     "jinja2>=3.1.6",
     "mock>=5.2.0",
-    "numpy>=2.3.5",
-    "openmeteo-requests>=1.7.4",
-    "orjson>=3.11.5",
+    "numpy>=2.4.3",
+    "openmeteo-requests>=1.7.5",
+    "orjson>=3.11.7",
     "plyer>=2.1.0",
     "pycodestyle>=2.14.0",
-    "requests-cache>=1.2.1",
+    "requests-cache>=1.3.1",
     "retry-requests>=2.0.0",
-    "ruff>=0.14.9",
-    "slack-sdk>=3.39.0",
-    "sqlalchemy>=2.0.45",
-    "xmltodict>=1.0.2",
+    "ruff>=0.15.6",
+    "slack-sdk>=3.41.0",
+    "sqlalchemy>=2.0.48",
+    "xmltodict>=1.0.4",
 ]
 readme = "README.md"
 requires-python = ">= 3.11"
