@@ -96,7 +96,7 @@ class PollenCountFetcher(FetcherBase):
             a = sum(increases) / len(increases)
 
         # 予測値を取得
-        max_forcast_pollen_count = int(max_rawdata_pollen_count + a * m)
+        max_forcast_pollen_count = int(valid_pollen_count_list[-1] + a * m)
         return max([max_forcast_pollen_count, max_rawdata_pollen_count])
 
     def interpret(self, target_date: str, record_type: str) -> dict:
