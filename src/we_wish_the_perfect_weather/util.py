@@ -85,7 +85,7 @@ def datetime_to_date(datetime_at: str) -> str:
         datetime_at (str): 対象の日時文字列
 
     Returns:
-        str: 対象の日時文字列に含まれる年月日
+        str: 対象の日時文字列に含まれる年月日(yyyy-mm-dd)
     """
     # 変換テスト
     datetime.strptime(datetime_at, "%Y-%m-%d %H:%M:%S")
@@ -111,9 +111,7 @@ def is_morning() -> bool:
     Returns:
         bool: 午前中ならばTrue, 午後ならばFalse
     """
-    # THINK::暫定措置として常に午前中とする
-    # return datetime.now().hour < 12
-    return True
+    return datetime.now().hour < 12
 
 
 def to_builtin(obj: Any) -> Any:

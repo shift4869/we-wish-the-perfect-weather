@@ -5,8 +5,7 @@ import httpx
 from httpx_retries import RetryTransport
 
 from we_wish_the_perfect_weather.fetcher_base import FetcherBase
-from we_wish_the_perfect_weather.util import datetime_to_date, datetime_to_yyyymmdd, get_now, get_tomorrow
-from we_wish_the_perfect_weather.util import get_yesterday, is_morning
+from we_wish_the_perfect_weather.util import datetime_to_date, datetime_to_yyyymmdd, get_now, get_yesterday
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
@@ -50,26 +49,18 @@ class PollenCountFetcher(FetcherBase):
         return self.fetched_data
 
     def get_slice(self, target_date: str) -> tuple[int, int]:
+        # 対象は昨日の実測値と、今日の予報値
         target_date_at_list = [
             get_yesterday(),
             get_now(),
-            get_tomorrow(),
         ]
         target_date_list = [datetime_to_date(t) for t in target_date_at_list]
-        if is_morning():
-            if target_date == target_date_list[0]:
-                return (0, 24)  # 昨日の値が含まれるスライス範囲
-            elif target_date == target_date_list[1]:
-                return (24, 48)  # 今日の値が含まれるスライス範囲
-            else:
-                return (-1, -1)
+        if target_date == target_date_list[0]:
+            return (0, 24)  # 昨日の値が含まれるスライス範囲
+        elif target_date == target_date_list[1]:
+            return (24, 48)  # 今日の値が含まれるスライス範囲
         else:
-            if target_date == target_date_list[1]:
-                return (24, 48)  # 今日の値が含まれるスライス範囲
-            elif target_date == target_date_list[2]:
-                return (48, 72)  # 明日の値が含まれるスライス範囲
-            else:
-                return (-1, -1)
+            return (-1, -1)
 
     def interpret(self, target_date: str, record_type: str) -> dict:
         error_value_default = {
@@ -84,10 +75,6 @@ class PollenCountFetcher(FetcherBase):
         n, m = self.get_slice(target_date)
         if n == -1 or m == -1:
             # target_date が想定外の範囲
-            return error_value_default
-
-        if n == 48 and m == 72:
-            # 明日の値を参照された場合、確定で値が存在しないので決め打ち
             return error_value_default
 
         def is_numeric(s: str) -> bool:

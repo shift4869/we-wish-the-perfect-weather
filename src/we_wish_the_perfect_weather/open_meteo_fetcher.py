@@ -7,8 +7,7 @@ import requests_cache
 from retry_requests import retry
 
 from we_wish_the_perfect_weather.fetcher_base import FetcherBase
-from we_wish_the_perfect_weather.util import datetime_to_date, get_now, get_tomorrow, get_yesterday, is_morning
-from we_wish_the_perfect_weather.util import to_builtin
+from we_wish_the_perfect_weather.util import datetime_to_date, get_now, get_yesterday, to_builtin
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
@@ -77,26 +76,18 @@ class OpenMeteoFetcher(FetcherBase):
         return self.fetched_data
 
     def get_slice(self, target_date: str) -> tuple[int, int]:
+        # 対象は昨日の実測値と、今日の予報値
         target_date_at_list = [
             get_yesterday(),
             get_now(),
-            get_tomorrow(),
         ]
         target_date_list = [datetime_to_date(t) for t in target_date_at_list]
-        if is_morning():
-            if target_date == target_date_list[0]:
-                return (0, 24)  # 昨日の値が含まれるスライス範囲
-            elif target_date == target_date_list[1]:
-                return (24, 48)  # 今日の値が含まれるスライス範囲
-            else:
-                return (-1, -1)
+        if target_date == target_date_list[0]:
+            return (0, 24)  # 昨日の値が含まれるスライス範囲
+        elif target_date == target_date_list[1]:
+            return (24, 48)  # 今日の値が含まれるスライス範囲
         else:
-            if target_date == target_date_list[1]:
-                return (24, 48)  # 今日の値が含まれるスライス範囲
-            elif target_date == target_date_list[2]:
-                return (48, 72)  # 明日の値が含まれるスライス範囲
-            else:
-                return (-1, -1)
+            return (-1, -1)
 
     def interpret(self, target_date: str, record_type: str) -> dict:
         n, m = self.get_slice(target_date)

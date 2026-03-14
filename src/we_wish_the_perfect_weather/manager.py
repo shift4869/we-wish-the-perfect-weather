@@ -8,7 +8,7 @@ from jinja2 import Template
 from we_wish_the_perfect_weather.fetcher_base import FetcherBase
 from we_wish_the_perfect_weather.open_meteo_fetcher import OpenMeteoFetcher
 from we_wish_the_perfect_weather.pollen_count_fetcher import PollenCountFetcher
-from we_wish_the_perfect_weather.util import Result, datetime_to_date, get_now, get_tomorrow, get_yesterday, is_morning
+from we_wish_the_perfect_weather.util import Result, datetime_to_date, get_now, get_yesterday
 from we_wish_the_perfect_weather.weather_db_controller import WeatherDBController
 
 logger = getLogger(__name__)
@@ -164,23 +164,18 @@ class Manager:
     def run(self) -> Result:
         logger.info("Manager run -> start.")
 
+        # 対象は昨日の実測値と、今日の予報値
         target_date_at_list = [
             get_yesterday(),
             get_now(),
-            get_tomorrow(),
         ]
         target_date_list = [datetime_to_date(t) for t in target_date_at_list]
         target_date1, target_date2 = "", ""
-        if is_morning():
-            target_date1 = target_date_list[0]
-            target_date2 = target_date_list[1]
-            logger.info(f"Now is morning, checking [{target_date1}, {target_date2}].")
-        else:
-            target_date1 = target_date_list[1]
-            target_date2 = target_date_list[2]
-            logger.info(f"Now is afternoon, checking [{target_date1}, {target_date2}].")
+        target_date1 = target_date_list[0]
+        target_date2 = target_date_list[1]
+        logger.info(f"Checking [{target_date1}, {target_date2}].")
 
-        # 強制実行でない、かつ、実行日の午前or午後それぞれで初回実行で無ければ
+        # 強制実行でない、かつ、初回実行で無ければ
         if (not self.is_force) and (not self.is_first_run_of_day(target_date1, target_date2)):
             logger.info(f"[{target_date1}, {target_date2}] target_date is already done.")
             logger.info("Manager run -> done.")
