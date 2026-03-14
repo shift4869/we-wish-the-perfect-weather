@@ -19,21 +19,6 @@ class FetcherBase(metaclass=ABCMeta):
     @abstractmethod
     def api_params(self) -> dict:
         raise NotImplementedError()
-        params = {
-            "latitude": float(self.latitude),
-            "longitude": float(self.longitude),
-            "hourly": [
-                "temperature_2m",
-                "relative_humidity_2m",
-                "precipitation",
-                "precipitation_probability",
-                "wind_speed_10m",
-            ],
-            "timezone": "Asia/Tokyo",
-            "past_days": 1,
-            "forecast_days": 2,
-        }
-        return params
 
     @abstractmethod
     def fetch(self) -> dict:
@@ -41,6 +26,14 @@ class FetcherBase(metaclass=ABCMeta):
 
     @abstractmethod
     def interpret(self, target_date: str, record_type: str) -> dict:
+        """
+        return {
+            "target_date": target_date,
+            "record_type": record_type,
+            "each_attribute...": value,
+            ...
+        }
+        """
         raise NotImplementedError()
 
 

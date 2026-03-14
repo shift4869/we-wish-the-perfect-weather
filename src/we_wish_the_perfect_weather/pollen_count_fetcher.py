@@ -13,6 +13,7 @@ logger.setLevel(INFO)
 
 class PollenCountFetcher(FetcherBase):
     API_POLLEN_COUNT = "https://wxtech.weathernews.com/opendata/v1/pollen"
+    INVALID_VALUE = -9999
 
     def __init__(self, config: dict):
         super().__init__(config)
@@ -62,11 +63,47 @@ class PollenCountFetcher(FetcherBase):
         else:
             return (-1, -1)
 
+    def get_forcast_max_pollon_count(self, pollen_count_list: list[int]) -> int:
+        # 値として有効なものを集めた配列
+        valid_pollen_count_list = [v for v in pollen_count_list if v != PollenCountFetcher.INVALID_VALUE]
+        # 実測値としての現在の最大値
+        max_rawdata_pollen_count = max(valid_pollen_count_list)
+
+        n = len(valid_pollen_count_list)  # 有効な値が入っている個数
+        m = len(pollen_count_list) - n  # 無効な値が入っている個数
+        a = -1  # 傾き（仮置き）
+
+        if n < 2:
+            # 予測に必要な要素が足りない（少なくとも2つの要素が必要）ならば
+            # 単純にmaxを返して終了
+            return max_rawdata_pollen_count
+
+        if m == 0:
+            # すべて有効な実測値ならば
+            # 予測する意味がないのでmaxを返して終了
+            return max_rawdata_pollen_count
+
+        # 増加量取得
+        increases = [
+            valid_pollen_count_list[i] - valid_pollen_count_list[i - 1]
+            for i in range(1, n)
+            # if valid_pollen_count_list[i] - valid_pollen_count_list[i - 1] > 0
+        ]
+        if not increases:
+            a = 0
+        else:
+            # 傾きを取得
+            a = sum(increases) / len(increases)
+
+        # 予測値を取得
+        max_forcast_pollen_count = int(max_rawdata_pollen_count + a * m)
+        return max([max_forcast_pollen_count, max_rawdata_pollen_count])
+
     def interpret(self, target_date: str, record_type: str) -> dict:
         error_value_default = {
             "target_date": target_date,
             "record_type": record_type,
-            "maximum_pollen_count": -9999,
+            "maximum_pollen_count": PollenCountFetcher.INVALID_VALUE,
         }
         if self.fetched_csv == "":
             # fetchが失敗している場合
@@ -95,8 +132,14 @@ class PollenCountFetcher(FetcherBase):
                 continue
             pollen_count_list.append(int(pollen))
 
+        # 花粉飛散量の実測値のmaxをとる
+        max_rawdata_pollen_count = max(pollen_count_list[n:m])
+
+        # 花粉飛散量のmaxの予測値を取得する
+        max_forcast_pollen_count = self.get_forcast_max_pollon_count(pollen_count_list)
+
         # 花粉飛散量のmaxをとる
-        pollen_count = max(pollen_count_list[n:m])
+        pollen_count = max([max_forcast_pollen_count, max_rawdata_pollen_count])
 
         return {
             "target_date": target_date,
@@ -111,4 +154,4 @@ if __name__ == "__main__":
     config = orjson.loads(Path("./config/config.json").read_bytes())
     fetcher = PollenCountFetcher(config)
     print(fetcher.fetch())
-    print(fetcher.interpret("2026-02-07", "forecast"))
+    print(fetcher.interpret(datetime_to_date(get_now()), "forecast"))
