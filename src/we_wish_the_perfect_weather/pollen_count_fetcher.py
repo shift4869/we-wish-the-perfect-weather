@@ -46,6 +46,7 @@ class PollenCountFetcher(FetcherBase):
 
         self.fetched_data = self.fetched_csv
 
+        logger.info(f"Fetched pollen_count data size is {len(self.fetched_data)} bytes.")
         logger.info("Fetching pollen_count -> done.")
         return self.fetched_data
 
@@ -69,8 +70,8 @@ class PollenCountFetcher(FetcherBase):
 
         if not valid_pollen_count_list:
             # 値として有効なものが存在しないならば
-            # 0を返して終了
-            return 0
+            # エラー値を返して終了
+            return PollenCountFetcher.INVALID_VALUE
 
         # 実測値としての現在の最大値
         max_rawdata_pollen_count = max(valid_pollen_count_list)
@@ -138,7 +139,7 @@ class PollenCountFetcher(FetcherBase):
                 continue
             pollen_count_list.append(int(pollen))
 
-        pollen_count = 0
+        pollen_count = error_value_default["maximum_pollen_count"]
         if pollen_count_list:
             # fetchしたcsv分解後に有効なレコードが取得できたならば
 
