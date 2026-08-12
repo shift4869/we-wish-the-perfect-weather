@@ -132,6 +132,65 @@ class Manager:
         response.raise_for_status()
         return Result.success
 
+    def make_natural_sentence(self, check: list[bool], record_type: str) -> str:
+        natural_sentence = ""
+        if all(check):
+            if record_type == "actual":
+                natural_sentence = "'完璧な一日'でした。"
+            elif record_type == "forecast":
+                natural_sentence = "'完璧な一日'になるでしょう。"
+        else:
+            unusual = ""
+            t = ""
+            if not check[0] and not check[1]:
+                t = "高温かつ低温"
+            elif not check[0] and check[1]:
+                t = "高温"
+            elif check[0] and not check[1]:
+                t = "低温"
+
+            h = ""
+            if not check[2] and not check[3]:
+                h = "多湿かつ乾燥"
+            elif not check[2] and check[3]:
+                h = "多湿"
+            elif check[2] and not check[3]:
+                h = "乾燥"
+
+            if "かつ" in t or "かつ" in h:
+                unusual = f"{t}、{h}で、"
+            else:
+                unusual = f"{t}{h}で、"
+
+            if not check[4] or not check[5]:
+                if record_type == "actual":
+                    unusual = unusual + "雨が降った、"
+                elif record_type == "forecast":
+                    unusual = unusual + "雨が降る、"
+
+            if not check[6]:
+                if record_type == "actual":
+                    unusual = unusual + "風が強かった、"
+                elif record_type == "forecast":
+                    unusual = unusual + "風が強い、"
+            if not check[7]:
+                if record_type == "actual":
+                    unusual = unusual + "花粉が多かった、"
+                elif record_type == "forecast":
+                    unusual = unusual + "花粉が多い、"
+
+            if unusual[-1] == "、":
+                unusual = unusual[:-1]
+
+            if unusual[-1] == "で":
+                unusual = unusual[:-1] + "の"
+
+            if record_type == "actual":
+                natural_sentence = unusual + "異常気象でした。"
+            elif record_type == "forecast":
+                natural_sentence = unusual + "異常気象になるでしょう。"
+        return natural_sentence
+
     def register(self, target_date: str, record_type: str) -> Result:
         record = {}
         for fetcher in self.fetcher_list:
@@ -143,18 +202,20 @@ class Manager:
 
         self.weather_db.upsert(record)
 
+        natural_sentence = self.make_natural_sentence(check, record_type)
+
         is_post_discord = self.config["discord_webhook_url"]["is_post_discord_notify"]
         if record["is_perfect"]:
             logger.info(f"{target_date} {record_type} is perfect !!!")
             if self.config["notification"]["perfect"] and is_post_discord:
                 line = "/" * 55 + "\n"
                 msg = self.msg_template.render(record=record, base=Manager.PW_BASE, check=check)
-                self.post_discord_notify(f"{line}{msg}{line}")
+                self.post_discord_notify(f"{line}{msg}\n{natural_sentence}{line}")
         else:
             logger.info(f"{target_date} {record_type} is imperfect ...")
             if self.config["notification"]["imperfect"] and is_post_discord:
                 msg = self.msg_template.render(record=record, base=Manager.PW_BASE, check=check)
-                self.post_discord_notify(msg)
+                self.post_discord_notify(f"{msg}\n{natural_sentence}")
         return Result.success
 
     def is_first_run_of_day(self, target_date1: str, target_date2: str) -> bool:
@@ -198,5 +259,5 @@ class Manager:
 
 
 if __name__ == "__main__":
-    manager = Manager()
+    manager = Manager(is_force=True)
     manager.run()
