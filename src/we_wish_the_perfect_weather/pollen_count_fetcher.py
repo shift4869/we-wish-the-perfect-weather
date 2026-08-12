@@ -66,6 +66,12 @@ class PollenCountFetcher(FetcherBase):
     def get_forcast_max_pollon_count(self, pollen_count_list: list[int]) -> int:
         # 値として有効なものを集めた配列
         valid_pollen_count_list = [v for v in pollen_count_list if v != PollenCountFetcher.INVALID_VALUE]
+
+        if not valid_pollen_count_list:
+            # 値として有効なものが存在しないならば
+            # 0を返して終了
+            return 0
+
         # 実測値としての現在の最大値
         max_rawdata_pollen_count = max(valid_pollen_count_list)
 
@@ -132,18 +138,22 @@ class PollenCountFetcher(FetcherBase):
                 continue
             pollen_count_list.append(int(pollen))
 
-        # 花粉飛散量の実測値のmaxをとる
-        max_rawdata_pollen_count = max(pollen_count_list[n:m])
+        pollen_count = 0
+        if pollen_count_list:
+            # fetchしたcsv分解後に有効なレコードが取得できたならば
 
-        # target_dateが今日の予報ならば花粉飛散量のmaxの予測値を取得する
-        max_forcast_pollen_count = (
-            self.get_forcast_max_pollon_count(pollen_count_list)
-            if target_date == datetime_to_date(get_now())
-            else max_rawdata_pollen_count
-        )
+            # 花粉飛散量の実測値のmaxをとる
+            max_rawdata_pollen_count = max(pollen_count_list[n:m])
 
-        # 花粉飛散量のmaxをとる
-        pollen_count = max([max_forcast_pollen_count, max_rawdata_pollen_count])
+            # target_dateが今日の予報ならば花粉飛散量のmaxの予測値を取得する
+            max_forcast_pollen_count = (
+                self.get_forcast_max_pollon_count(pollen_count_list[n:m])
+                if target_date == datetime_to_date(get_now())
+                else max_rawdata_pollen_count
+            )
+
+            # 花粉飛散量のmaxをとる
+            pollen_count = max([max_forcast_pollen_count, max_rawdata_pollen_count])
 
         return {
             "target_date": target_date,
